@@ -108,13 +108,22 @@
             const url = `https://generativelanguage.googleapis.com/v1beta/models/${endpoint}:generateContent?key=${apiKey}`;
             for (let i = 0; i < retries; i++) {
                 try {
-                    const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                    const response = await fetch(url, { 
+                        method: 'POST', 
+                        headers: { 'Content-Type': 'application/json' }, 
+                        body: JSON.stringify(payload) 
+                    });
+                    
+                    if (response.status === 403) {
+                        throw new Error("HTTP 403: Erişim Reddedildi. API anahtarı geçersiz veya yetkisiz.");
+                    }
+                    
                     if (!response.ok) throw new Error(`HTTP ${response.status}`);
                     const data = await response.json();
                     if (data?.candidates?.[0]) return data;
                     throw new Error("Yanıt alınamadı");
                 } catch (err) {
-                    if (i === retries - 1) throw err;
+                    if (i === retries - 1 || err.message.includes("403")) throw err;
                     await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000));
                 }
             }
@@ -130,6 +139,13 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ instances: [{ prompt: prompt }], parameters: { sampleCount: 1 } })
                 });
+
+                if (response.status === 403) {
+                    throw new Error("Görsel üretimi için yetkiniz yok (HTTP 403).");
+                }
+
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                
                 const data = await response.json();
                 const b64 = data.predictions[0].bytesBase64Encoded;
                 removeLoadingMessage(tempId);
@@ -138,7 +154,7 @@
                 save();
             } catch (err) {
                 removeLoadingMessage(tempId);
-                displayMessage("Görsel motoru hatası: " + err.message, 'system');
+                displayMessage("Sinyal kesildi Lider: " + err.message, 'system');
             }
         }
 
@@ -282,6 +298,10 @@
             wrapper.appendChild(box);
             chatBox.appendChild(wrapper);
             chatBox.scrollTop = chatBox.scrollHeight;
+
+            if (role === 'system') {
+                box.className = "max-w-[85%] p-3 rounded-xl bg-red-500/10 border border-red-500/50 text-red-500 text-xs font-bold";
+            }
 
             if (animate) {
                 return new Promise(resolve => {
