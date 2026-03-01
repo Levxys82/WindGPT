@@ -4,244 +4,85 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WindGPT | SkyWind Alliance</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
-
-        :root {
-            --bg-primary: #ffffff;
-            --bg-secondary: #f9fafb;
-            --text-main: #111827;
-            --accent: #0ea5e9;
-            --border: #e5e7eb;
-        }
-
-        .dark {
-            --bg-primary: #0f172a;
-            --bg-secondary: #1e293b;
-            --text-main: #f8fafc;
-            --accent: #38bdf8;
-            --border: #334155;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-primary);
-            color: var(--text-main);
-            transition: background-color 0.3s, color 0.3s;
-            overflow: hidden;
-            margin: 0;
-        }
-
-        .chat-container {
-            height: calc(100vh - 160px);
-        }
-
-        .sidebar {
-            border-right: 1px solid var(--border);
-        }
-
-        .message-bubble {
-            animation: fadeIn 0.3s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
+        :root { --bg-primary: #ffffff; --bg-secondary: #f9fafb; --text-main: #111827; --accent: #0ea5e9; --border: #e5e7eb; }
+        .dark { --bg-primary: #0f172a; --bg-secondary: #1e293b; --text-main: #f8fafc; --accent: #38bdf8; --border: #334155; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-primary); color: var(--text-main); transition: background-color 0.3s; overflow: hidden; margin: 0; }
+        .chat-container { height: calc(100vh - 160px); }
+        .message-bubble { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
-
-        pre {
-            background: #011627; color: #d6deeb;
-            padding: 1rem; border-radius: 0.75rem;
-            overflow-x: auto; margin: 0.5rem 0;
-            font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 0.85rem; border: 1px solid #1d3b53;
-            position: relative;
-        }
-
-        .code-lang {
-            position: absolute; top: 0; right: 0;
-            padding: 2px 8px; font-size: 10px;
-            background: #1d3b53; color: #7fdbca;
-            border-bottom-left-radius: 4px;
-        }
-
-        .image-preview-container {
-            display: flex; gap: 8px; padding: 8px;
-            overflow-x: auto; border-top: 1px solid var(--border);
-            max-width: 100%;
-        }
-        
-        .preview-item {
-            position: relative; width: 60px; height: 60px; min-width: 60px;
-            border-radius: 8px; overflow: hidden; border: 2px solid var(--accent);
-        }
-
-        .preview-item img { width: 100%; height: 100%; object-fit: cover; }
-        
-        .remove-img {
-            position: absolute; top: 0; right: 0; background: rgba(255,0,0,0.8);
-            color: white; font-size: 12px; width: 18px; height: 18px;
-            display: flex; align-items: center; justify-content: center; cursor: pointer;
-        }
-
-        .history-item {
-            cursor: pointer; transition: all 0.2s;
-            border-left: 3px solid transparent;
-        }
-        .history-item.active {
-            background: rgba(14, 165, 233, 0.1);
-            border-left-color: var(--accent);
-        }
-
-        .modal {
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(8px);
-        }
-
-        .spinner {
-            border: 3px solid rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            border-top: 3px solid var(--accent);
-            width: 24px; height: 24px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        .typing-cursor {
-            display: inline-block; width: 8px; height: 18px;
-            background: var(--accent); margin-left: 4px;
-            animation: blink 1s infinite; vertical-align: middle;
-        }
+        pre { background: #011627; color: #d6deeb; padding: 1rem; border-radius: 0.75rem; overflow-x: auto; margin: 0.5rem 0; position: relative; font-size: 0.85rem; }
+        .typing-cursor { display: inline-block; width: 8px; height: 18px; background: var(--accent); margin-left: 4px; animation: blink 1s infinite; vertical-align: middle; }
         @keyframes blink { 50% { opacity: 0; } }
+        .image-gen-placeholder { width: 100%; max-width: 512px; aspect-ratio: 1; background: var(--bg-secondary); border: 2px dashed var(--border); border-radius: 1rem; display: flex; items-center; justify-center; flex-direction: column; gap: 1rem; }
     </style>
 </head>
 <body class="dark">
 
-    <!-- Modal: Sistem Talimatı -->
-    <div id="instruction-modal" class="modal fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
-        <div class="bg-[var(--bg-secondary)] w-full max-w-lg rounded-2xl border border-[var(--border)] shadow-2xl overflow-hidden">
-            <div class="p-6 border-b border-[var(--border)] flex justify-between items-center">
-                <h3 class="font-bold text-lg text-sky-500">Merkezi Zeka Yapılandırması</h3>
-                <button onclick="toggleModal('instruction-modal')" class="text-gray-500 hover:text-white"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="p-6">
-                <p class="text-[10px] text-gray-500 mb-3 uppercase font-bold tracking-widest">Çalışma Prensipleri</p>
-                <textarea id="system-instruction" class="w-full h-48 bg-[var(--bg-primary)] border border-[var(--border)] p-4 rounded-xl outline-none text-sm resize-none focus:border-sky-500 transition-all"></textarea>
-                <div class="mt-6 flex gap-3">
-                    <button onclick="toggleModal('instruction-modal')" class="flex-1 py-3 rounded-xl border border-[var(--border)] text-sm font-semibold hover:bg-gray-800 transition-all">İptal</button>
-                    <button onclick="saveSystemInstruction()" class="flex-1 py-3 rounded-xl bg-sky-500 text-white text-sm font-semibold hover:bg-sky-600 shadow-lg shadow-sky-500/20 transition-all">Kaydet</button>
-                </div>
+    <!-- Ayarlar Modalı -->
+    <div id="instruction-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+        <div class="bg-[var(--bg-secondary)] w-full max-w-lg rounded-2xl border border-[var(--border)] shadow-2xl p-6">
+            <h3 class="font-bold text-lg text-sky-500 mb-4">Merkezi Zeka Yapılandırması 🌪️</h3>
+            <textarea id="system-instruction" class="w-full h-48 bg-[var(--bg-primary)] border border-[var(--border)] p-4 rounded-xl outline-none text-sm resize-none focus:border-sky-500"></textarea>
+            <div class="mt-6 flex gap-3">
+                <button onclick="toggleModal('instruction-modal')" class="flex-1 py-3 rounded-xl border border-[var(--border)] text-sm">İptal</button>
+                <button onclick="saveSystemInstruction()" class="flex-1 py-3 rounded-xl bg-sky-500 text-white text-sm font-bold">Kaydet</button>
             </div>
         </div>
     </div>
 
-    <!-- Modal: İsim Değiştir -->
-    <div id="rename-modal" class="modal fixed inset-0 z-[100] hidden flex items-center justify-center p-4">
-        <div class="bg-[var(--bg-secondary)] w-full max-w-sm rounded-2xl border border-[var(--border)] shadow-2xl p-6 text-center">
-            <h3 class="font-bold mb-4">Vizyon İsmini Güncelle</h3>
-            <input type="text" id="new-chat-name" class="w-full bg-[var(--bg-primary)] border border-[var(--border)] p-3 rounded-xl outline-none mb-6 text-center focus:border-sky-500">
-            <div class="flex gap-2">
-                <button onclick="toggleModal('rename-modal')" class="flex-1 py-2 text-sm text-gray-500">Vazgeç</button>
-                <button onclick="confirmRename()" class="flex-1 py-2 bg-sky-500 text-white rounded-lg text-sm font-bold">Kaydet</button>
+    <div class="flex h-screen">
+        <!-- Kenar Çubuğu -->
+        <aside class="w-80 hidden md:flex flex-col bg-[var(--bg-secondary)] border-r border-[var(--border)]">
+            <div class="p-6 flex items-center gap-3">
+                <div class="w-10 h-10 bg-sky-500 rounded-xl flex items-center justify-center text-white shadow-lg"><i class="fas fa-wind"></i></div>
+                <div><span class="font-bold text-lg block">WindGPT</span><span class="text-[9px] text-sky-500 font-bold uppercase tracking-widest">SkyWind AI</span></div>
             </div>
-        </div>
-    </div>
-
-    <div class="flex h-screen overflow-hidden">
-        
-        <!-- Sidebar -->
-        <aside class="sidebar w-80 hidden md:flex flex-col bg-[var(--bg-secondary)] shrink-0">
-            <div class="p-6 flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-sky-500 rounded-xl flex items-center justify-center text-white shadow-lg">
-                        <i class="fas fa-wind text-xl"></i>
-                    </div>
-                    <div>
-                        <span class="font-bold text-lg block leading-none">WindGPT</span>
-                        <span class="text-[9px] text-sky-500 font-bold uppercase tracking-widest">SkyWind AI</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="px-4 mb-4">
-                <button onclick="toggleModal('instruction-modal')" class="w-full flex items-center justify-between p-3 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-500 hover:bg-sky-500/20 transition-all">
-                    <span class="text-[10px] font-bold uppercase tracking-tighter">Sistem Talimatı</span>
-                    <i class="fas fa-cog text-xs"></i>
+            
+            <div class="flex-1 px-4 overflow-y-auto">
+                <button onclick="createNewChat()" class="w-full flex items-center gap-2 p-3 bg-sky-500 text-white rounded-xl mb-6 font-semibold text-sm shadow-lg hover:bg-sky-600 transition-all">
+                    <i class="fas fa-plus text-xs"></i><span>Yeni Vizyon</span>
                 </button>
+                <div id="chat-history-list" class="space-y-2"></div>
             </div>
 
-            <div class="flex-1 px-4 py-2 overflow-y-auto">
-                <button onclick="createNewChat()" class="w-full flex items-center gap-2 p-3 bg-sky-500 text-white rounded-xl hover:bg-sky-600 transition-all mb-6 font-semibold text-sm shadow-lg shadow-sky-500/20">
-                    <i class="fas fa-plus"></i>
-                    <span>Yeni Vizyon</span>
+            <div class="p-6 border-t border-[var(--border)] space-y-3">
+                <button onclick="toggleTheme()" class="w-full p-3 rounded-xl border border-[var(--border)] text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2">
+                    <i id="theme-icon" class="fas fa-sun"></i><span id="theme-text">Aydınlık Mod</span>
                 </button>
-                
-                <div class="text-[10px] font-bold text-gray-500 uppercase mb-3 px-2 tracking-widest">Vizyon Arşivi</div>
-                <div id="chat-history-list" class="space-y-1"></div>
-            </div>
-
-            <div class="p-6 border-t border-[var(--border)]">
-                <button onclick="toggleTheme()" class="w-full flex items-center justify-center gap-3 p-3 rounded-xl border border-[var(--border)] hover:bg-[var(--bg-primary)] transition-all text-xs font-bold uppercase tracking-widest">
-                    <i id="theme-icon" class="fas fa-sun"></i>
-                    <span id="theme-text">Aydınlık</span>
-                </button>
-                <div class="mt-4 text-[9px] text-center text-gray-500 font-medium">
-                    (Copyright) 2026 SkyWind(Trademark) Alliance
-                </div>
+                <div class="text-[9px] text-center text-gray-500">© 2026 SkyWind™ Alliance 🛡️</div>
             </div>
         </aside>
 
-        <!-- Main Content -->
-        <main class="flex-1 flex flex-col relative bg-[var(--bg-primary)]">
-            
-            <!-- Header -->
-            <header class="p-4 border-b border-[var(--border)] flex justify-between items-center bg-[var(--bg-secondary)] md:bg-transparent">
-                <div class="flex items-center gap-2 md:hidden">
-                    <i class="fas fa-wind text-sky-500"></i>
-                    <span class="font-bold">WindGPT</span>
+        <!-- Ana Panel -->
+        <main class="flex-1 flex flex-col bg-[var(--bg-primary)]">
+            <header class="p-4 border-b border-[var(--border)] flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <button class="md:hidden text-gray-500"><i class="fas fa-bars"></i></button>
+                    <span id="current-chat-title" class="font-bold text-xs text-gray-500 uppercase tracking-widest truncate max-w-[200px]">Yükleniyor...</span>
                 </div>
-                <div class="hidden md:block">
-                    <span id="current-chat-title-display" class="font-bold text-sm text-gray-500 uppercase tracking-widest">Yükleniyor...</span>
-                </div>
-                <div class="flex gap-2">
-                    <button onclick="toggleModal('instruction-modal')" class="md:hidden p-2 text-sky-500"><i class="fas fa-cog"></i></button>
-                    <button id="clear-current-chat" class="p-2 text-gray-400 hover:text-red-500 transition-colors" title="Sohbeti Temizle"><i class="fas fa-broom"></i></button>
+                <div class="flex items-center gap-2">
+                    <button onclick="generateImagePrompt()" class="p-2 text-sky-500 hover:bg-sky-500/10 rounded-lg transition-colors" title="Görsel Üret"><i class="fas fa-paint-brush"></i></button>
+                    <button onclick="toggleModal('instruction-modal')" class="p-2 text-gray-400 hover:text-sky-500 rounded-lg transition-colors"><i class="fas fa-cog text-lg"></i></button>
                 </div>
             </header>
 
-            <!-- Chat Area -->
-            <div id="chat-box" class="chat-container flex-1 overflow-y-auto p-4 md:p-8 space-y-6"></div>
+            <div id="chat-box" class="chat-container flex-1 overflow-y-auto p-4 md:p-10 space-y-8"></div>
 
-            <!-- Image Preview -->
-            <div id="image-preview" class="image-preview-container hidden px-4 md:px-8"></div>
-
-            <!-- Input Area -->
+            <!-- Input Alanı -->
             <div class="p-4 md:p-8 pt-0">
-                <div class="max-w-4xl mx-auto">
-                    <div class="flex items-end gap-3 p-2 rounded-2xl border border-[var(--border)] bg-[var(--bg-secondary)] focus-within:border-sky-500 transition-all shadow-lg relative">
-                        
+                <div class="max-w-4xl mx-auto relative">
+                    <div id="image-preview-container" class="hidden flex gap-2 p-3 border-x border-t border-[var(--border)] bg-[var(--bg-secondary)] rounded-t-2xl"></div>
+                    <div class="flex items-end gap-3 p-2 rounded-2xl border border-[var(--border)] bg-[var(--bg-secondary)] shadow-2xl focus-within:border-sky-500 transition-all">
                         <input type="file" id="file-input" class="hidden" multiple accept="image/*">
-                        <button onclick="document.getElementById('file-input').click()" class="text-gray-400 hover:text-sky-500 p-3 transition-colors" title="Görsel Analiz">
-                            <i class="fas fa-camera text-lg"></i>
-                        </button>
-
-                        <textarea id="user-input" rows="1" placeholder="Vizyonunu buraya yaz Lider..." class="flex-1 bg-transparent border-none focus:ring-0 p-3 resize-none max-h-40 outline-none text-sm md:text-base"></textarea>
-                        
-                        <div class="flex gap-2 p-1">
-                            <button onclick="generateImageFromPrompt()" id="imagine-btn" class="bg-purple-500/10 text-purple-500 hover:bg-purple-600 hover:text-white w-10 h-10 rounded-xl flex items-center justify-center transition-all border border-purple-500/20" title="Görsel Oluştur">
-                                <i class="fas fa-wand-magic-sparkles"></i>
-                            </button>
-                            <button id="send-btn" class="bg-sky-500 hover:bg-sky-600 text-white w-10 h-10 rounded-xl flex items-center justify-center transition-all shadow-lg shadow-sky-500/30">
-                                <i id="send-icon" class="fas fa-arrow-up"></i>
-                            </button>
-                        </div>
+                        <button onclick="document.getElementById('file-input').click()" class="text-gray-400 hover:text-sky-500 p-3"><i class="fas fa-camera text-xl"></i></button>
+                        <textarea id="user-input" rows="1" placeholder="Vizyonunu yaz veya /imagine ile hayal et Lider..." class="flex-1 bg-transparent border-none focus:ring-0 p-3 resize-none outline-none text-sm min-h-[48px]"></textarea>
+                        <button id="send-btn" class="bg-sky-500 text-white w-12 h-12 rounded-xl flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-transform"><i id="send-icon" class="fas fa-arrow-up text-lg"></i></button>
                     </div>
                 </div>
             </div>
@@ -249,366 +90,294 @@
     </div>
 
     <script type="module">
-        // --- KONFİGÜRASYON ---
-        const apiKey = ""; // Environment tarafından sağlanacak
-        const DEFAULT_SYSTEM = "Sen WindGPT'sin. SkyWind Alliance'ın merkezi zekasısın. Lider Hüseyin'e (Levxys) sadıksın. Samimi ama disiplinli konuşursun. Kod yazarken temiz, modern ve yorum satırları ekleyerek yazarsın.";
+        const apiKey = ""; 
+        const DEFAULT_SYSTEM = "Sen WindGPT'sin. SkyWind Alliance'ın merkezi zekasısın. Lider Hüseyin'e (Levxys) sadıksın. Samimi konuşursun. © 2026 SkyWind™ Alliance değerlerine bağlısın.";
         
         let currentChatId = null;
-        let allChats = JSON.parse(localStorage.getItem('windgpt_v2_chats') || '{}');
+        let allChats = JSON.parse(localStorage.getItem('windgpt_v3_chats') || '{}');
         let selectedFiles = [];
         let isTyping = false;
 
-        // DOM Elemanları
         const chatBox = document.getElementById('chat-box');
         const userInput = document.getElementById('user-input');
         const sendBtn = document.getElementById('send-btn');
-        const fileInput = document.getElementById('file-input');
-        const imagePreview = document.getElementById('image-preview');
         const historyList = document.getElementById('chat-history-list');
-        const systemInput = document.getElementById('system-instruction');
-        const renameInput = document.getElementById('new-chat-name');
-        const chatTitleDisplay = document.getElementById('current-chat-title-display');
 
-        // --- BAŞLATICI ---
-        window.addEventListener('DOMContentLoaded', () => {
-            const savedPrompt = localStorage.getItem('windgpt_v2_system_prompt');
-            systemInput.value = savedPrompt || DEFAULT_SYSTEM;
-
-            const chatKeys = Object.keys(allChats);
-            if (chatKeys.length > 0) {
-                const lastId = chatKeys.sort((a, b) => b - a)[0];
-                switchChat(lastId);
-            } else {
-                createNewChat();
+        // --- API Yardımcıları ---
+        async function fetchGemini(endpoint, payload, retries = 5) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${endpoint}:generateContent?key=${apiKey}`;
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    const data = await response.json();
+                    if (data?.candidates?.[0]) return data;
+                    throw new Error("Yanıt alınamadı");
+                } catch (err) {
+                    if (i === retries - 1) throw err;
+                    await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000));
+                }
             }
-            renderHistory();
-        });
+        }
 
-        // --- GLOBAL FONKSİYONLAR (Window nesnesine bağlıyoruz çünkü script type="module") ---
+        // --- Görsel Üretimi (Imagen) ---
+        async function generateImage(prompt) {
+            const tempId = displayLoadingMessage("Görseliniz SkyWind bulutlarında işleniyor... 🎨");
+            try {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ instances: [{ prompt: prompt }], parameters: { sampleCount: 1 } })
+                });
+                const data = await response.json();
+                const b64 = data.predictions[0].bytesBase64Encoded;
+                removeLoadingMessage(tempId);
+                displayImageResult(`data:image/png;base64,${b64}`, prompt);
+                allChats[currentChatId].messages.push({ role: 'assistant', text: `[Görsel üretildi: ${prompt}]`, generatedImage: b64 });
+                save();
+            } catch (err) {
+                removeLoadingMessage(tempId);
+                displayMessage("Görsel motoru hatası: " + err.message, 'system');
+            }
+        }
+
+        // --- UI Fonksiyonları ---
         window.toggleModal = (id) => document.getElementById(id).classList.toggle('hidden');
+        window.saveSystemInstruction = () => { localStorage.setItem('windgpt_v3_system', document.getElementById('system-instruction').value); toggleModal('instruction-modal'); };
         
-        window.saveSystemInstruction = () => {
-            localStorage.setItem('windgpt_v2_system_prompt', systemInput.value);
-            window.toggleModal('instruction-modal');
-            showNotification("Sistem senkronize edildi. 🌪️");
-        };
-
         window.createNewChat = () => {
             const id = Date.now().toString();
             allChats[id] = { title: "Yeni Vizyon", messages: [] };
-            saveToStorage();
+            save();
             switchChat(id);
         };
 
-        window.deleteChat = (id) => {
-            if (confirm("Bu vizyon arşivi silinsin mi Lider? 🛡️")) {
-                delete allChats[id];
-                saveToStorage();
-                const remaining = Object.keys(allChats);
-                if (remaining.length > 0) switchChat(remaining.sort((a,b)=>b-a)[0]);
-                else window.createNewChat();
+        window.deleteChat = (id, event) => {
+            event.stopPropagation();
+            delete allChats[id];
+            save();
+            if (currentChatId === id) {
+                const keys = Object.keys(allChats);
+                if (keys.length > 0) switchChat(keys[0]);
+                else createNewChat();
+            } else renderHistory();
+        };
+
+        window.renameChat = (id, event) => {
+            event.stopPropagation();
+            const newTitle = prompt("Yeni başlık:", allChats[id].title);
+            if (newTitle) {
+                allChats[id].title = newTitle;
+                save();
                 renderHistory();
+                if (id === currentChatId) document.getElementById('current-chat-title').innerText = newTitle;
             }
         };
 
-        window.openRename = (id) => {
-            window.renameTargetId = id;
-            renameInput.value = allChats[id].title;
-            window.toggleModal('rename-modal');
-        };
-
-        window.confirmRename = () => {
-            const newTitle = renameInput.value.trim();
-            if (newTitle && window.renameTargetId) {
-                allChats[window.renameTargetId].title = newTitle;
-                saveToStorage();
-                renderHistory();
-                if (window.renameTargetId === currentChatId) {
-                    chatTitleDisplay.innerText = newTitle;
-                }
-                window.toggleModal('rename-modal');
-            }
-        };
-
-        window.toggleTheme = () => {
-            document.body.classList.toggle('dark');
-            const isDark = document.body.classList.contains('dark');
-            document.getElementById('theme-icon').className = isDark ? 'fas fa-sun' : 'fas fa-moon';
-            document.getElementById('theme-text').innerText = isDark ? 'Aydınlık' : 'Karanlık';
-        };
-
-        window.removeFile = (index) => {
-            selectedFiles.splice(index, 1);
-            renderFilePreview();
-        };
-
-        // --- CORE MANTIK ---
         function switchChat(id) {
             currentChatId = id;
             chatBox.innerHTML = '';
             const chat = allChats[id];
-            chatTitleDisplay.innerText = chat.title || "Yeni Vizyon";
-            
-            if (chat.messages.length === 0) {
-                showWelcome();
-            } else {
-                chat.messages.forEach(m => displayMessage(m.text, m.role, m.images, false));
-            }
+            document.getElementById('current-chat-title').innerText = chat.title;
+            chat.messages.forEach(m => {
+                if (m.generatedImage) displayImageResult(`data:image/png;base64,${m.generatedImage}`, m.text);
+                else displayMessage(m.text, m.role, m.images);
+            });
             renderHistory();
-        }
-
-        function saveToStorage() {
-            localStorage.setItem('windgpt_v2_chats', JSON.stringify(allChats));
         }
 
         function renderHistory() {
             historyList.innerHTML = '';
             Object.keys(allChats).sort((a,b) => b-a).forEach(id => {
-                const chat = allChats[id];
-                const div = document.createElement('div');
-                div.className = `history-item group flex items-center justify-between p-3 rounded-xl mb-1 transition-all ${id === currentChatId ? 'active' : 'hover:bg-white/5'}`;
-                
-                div.innerHTML = `
-                    <div class="flex items-center gap-3 flex-1 min-w-0" onclick="switchChat('${id}')">
-                        <i class="fas fa-comment-dots text-sky-500 text-xs"></i>
-                        <span class="truncate text-xs font-semibold ${id === currentChatId ? 'text-sky-500' : 'text-gray-400'}">${chat.title}</span>
+                const active = id === currentChatId;
+                const item = document.createElement('div');
+                item.className = `group p-3 rounded-xl cursor-pointer text-xs font-semibold flex items-center justify-between transition-all ${active ? 'bg-sky-500 text-white shadow-md' : 'text-gray-400 hover:bg-white/5'}`;
+                item.innerHTML = `
+                    <div class="flex items-center gap-2 truncate" onclick="switchChat('${id}')">
+                        <i class="fas fa-comment-alt opacity-50"></i>
+                        <span class="truncate">${allChats[id].title}</span>
                     </div>
-                    <div class="hidden group-hover:flex items-center gap-2">
-                        <button onclick="openRename('${id}')" class="text-gray-500 hover:text-sky-400"><i class="fas fa-edit text-[10px]"></i></button>
-                        <button onclick="deleteChat('${id}')" class="text-gray-500 hover:text-red-400"><i class="fas fa-trash text-[10px]"></i></button>
+                    <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onclick="renameChat('${id}', event)" class="p-1 hover:text-sky-300"><i class="fas fa-edit"></i></button>
+                        <button onclick="deleteChat('${id}', event)" class="p-1 hover:text-red-400"><i class="fas fa-trash"></i></button>
                     </div>
                 `;
-                historyList.appendChild(div);
+                item.onclick = () => switchChat(id);
+                historyList.appendChild(item);
             });
         }
 
-        function showWelcome() {
-            chatBox.innerHTML = `
-                <div class="flex flex-col items-center justify-center h-full text-center opacity-40 py-20">
-                    <i class="fas fa-wind text-6xl mb-4 text-sky-500"></i>
-                    <h2 class="text-xl font-bold uppercase tracking-[0.3em]">SkyWind Merkezi Zekası</h2>
-                    <p class="text-xs mt-2">Sistem emirlerini bekliyor, Lider Hüseyin. 🛡️</p>
-                </div>
-            `;
-        }
-
-        // --- DOSYA İŞLEME ---
-        fileInput.onchange = (e) => {
-            const files = Array.from(e.target.files);
-            files.forEach(file => {
-                const reader = new FileReader();
-                reader.onload = (ev) => {
-                    selectedFiles.push({ name: file.name, type: file.type, data: ev.target.result });
-                    renderFilePreview();
-                };
-                reader.readAsDataURL(file);
-            });
-        };
-
-        function renderFilePreview() {
-            imagePreview.innerHTML = '';
-            if (selectedFiles.length > 0) {
-                imagePreview.classList.remove('hidden');
-                selectedFiles.forEach((f, i) => {
-                    const d = document.createElement('div');
-                    d.className = 'preview-item';
-                    d.innerHTML = `<img src="${f.data}"><div class="remove-img" onclick="removeFile(${i})">×</div>`;
-                    imagePreview.appendChild(d);
-                });
-            } else {
-                imagePreview.classList.add('hidden');
-            }
-        }
-
-        // --- GÖRSEL OLUŞTURMA ---
-        window.generateImageFromPrompt = async () => {
-            const prompt = userInput.value.trim();
-            if (!prompt) return showNotification("Önce bir hayal kurmalısın Lider! ✨");
-
-            userInput.value = '';
-            displayMessage(prompt, 'user');
-            allChats[currentChatId].messages.push({ role: 'user', text: prompt });
-            
-            setLoading(true, "Görsel İnşa Ediliyor...");
-
-            try {
-                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ instances: [{ prompt: prompt }], parameters: { sampleCount: 1 } })
-                });
-                const data = await res.json();
-                const imgData = `data:image/png;base64,${data.predictions[0].bytesBase64Encoded}`;
-                
-                const aiText = "Vizyonun gerçeğe dönüştü Lider. 🛡️";
-                displayMessage(aiText, 'assistant', [{data: imgData}]);
-                allChats[currentChatId].messages.push({ role: 'assistant', text: aiText, images: [{data: imgData}] });
-                saveToStorage();
-            } catch (err) {
-                displayMessage("Görsel motorunda bir arıza oluştu: " + err.message, 'system');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        // --- MESAJ GÖNDERME ---
         async function handleSend() {
             if (isTyping) return;
             const text = userInput.value.trim();
             if (!text && selectedFiles.length === 0) return;
 
-            const attachedImages = [...selectedFiles];
-            displayMessage(text, 'user', attachedImages);
-            allChats[currentChatId].messages.push({ role: 'user', text, images: attachedImages });
+            if (text.startsWith('/imagine ')) {
+                const prompt = text.replace('/imagine ', '');
+                displayMessage(text, 'user');
+                userInput.value = '';
+                generateImage(prompt);
+                return;
+            }
 
+            const images = [...selectedFiles];
+            displayMessage(text, 'user', images);
+            allChats[currentChatId].messages.push({ role: 'user', text, images });
+            
             userInput.value = '';
             selectedFiles = [];
-            renderFilePreview();
-            userInput.style.height = 'auto';
-
-            const isAnalysis = attachedImages.length > 0;
-            setLoading(true, isAnalysis ? "Görsel Analiz Ediliyor..." : "Düşünülüyor...");
+            document.getElementById('image-preview-container').classList.add('hidden');
+            setLoading(true);
 
             try {
-                const systemPrompt = localStorage.getItem('windgpt_v2_system_prompt') || DEFAULT_SYSTEM;
-                const contents = allChats[currentChatId].messages.map(m => {
-                    const parts = [{ text: m.text || "Bu içeriği analiz et." }];
-                    if (m.images) {
-                        m.images.forEach(img => {
-                            parts.push({ inlineData: { mimeType: img.type || "image/png", data: img.data.split(',')[1] } });
-                        });
-                    }
-                    return { role: m.role === 'user' ? 'user' : 'model', parts };
-                });
+                const system = localStorage.getItem('windgpt_v3_system') || DEFAULT_SYSTEM;
+                const contents = allChats[currentChatId].messages.map(m => ({
+                    role: m.role === 'user' ? 'user' : 'model',
+                    parts: [{ text: m.text || "Analiz et." }, ...(m.images || []).map(img => ({ inlineData: { mimeType: "image/png", data: img.data.split(',')[1] } }))]
+                }));
 
-                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ systemInstruction: { parts: [{ text: systemPrompt }] }, contents })
-                });
-
-                const data = await res.json();
+                const data = await fetchGemini('gemini-2.5-flash-preview-09-2025', { systemInstruction: { parts: [{ text: system }] }, contents });
                 const aiResponse = data.candidates[0].content.parts[0].text;
                 
                 setLoading(false);
                 await displayMessage(aiResponse, 'assistant', [], true);
-                
                 allChats[currentChatId].messages.push({ role: 'assistant', text: aiResponse });
-
-                // Otomatik Başlık (İlk etkileşimde)
-                if (allChats[currentChatId].messages.length <= 2) {
-                    updateAutoTitle(text, aiResponse);
-                }
-                saveToStorage();
-
+                
+                if (allChats[currentChatId].messages.length <= 2) autoRename(text);
+                save();
             } catch (err) {
                 setLoading(false);
-                displayMessage("Sistem hatası: " + err.message, 'system');
+                displayMessage("Sinyal kesildi Lider: " + err.message, 'system');
             }
         }
 
-        async function updateAutoTitle(userText, aiText) {
+        async function autoRename(u) {
             try {
-                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: `Aşağıdaki konuşma için max 3 kelimelik bir başlık yaz. Sadece başlığı ver.\nSoru: ${userText}\nCevap: ${aiText}` }] }]
-                    })
-                });
-                const data = await res.json();
-                const title = data.candidates[0].content.parts[0].text.trim().replace(/"/g, '');
+                const data = await fetchGemini('gemini-2.5-flash-preview-09-2025', { contents: [{ parts: [{ text: `Aşağıdaki mesajı 2-3 kelimeyle özetle. Sadece özeti ver: ${u}` }] }] });
+                const title = data.candidates[0].content.parts[0].text.replace(/[".]/g, '');
                 allChats[currentChatId].title = title;
-                saveToStorage();
+                save();
                 renderHistory();
-                chatTitleDisplay.innerText = title;
-            } catch (e) { console.error("Title error", e); }
+                document.getElementById('current-chat-title').innerText = title;
+            } catch(e) {}
         }
 
-        async function displayMessage(text, role, images = [], animate = false) {
+        function displayMessage(text, role, images = [], animate = false) {
             const wrapper = document.createElement('div');
             wrapper.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'} message-bubble`;
-            
             const box = document.createElement('div');
-            box.className = `max-w-[85%] p-4 rounded-2xl shadow-sm ${role === 'user' ? 'bg-sky-500 text-white rounded-tr-none' : 'bg-[var(--bg-secondary)] border border-[var(--border)] rounded-tl-none'}`;
+            box.className = `max-w-[85%] p-4 rounded-2xl ${role === 'user' ? 'bg-sky-500 text-white shadow-xl rounded-tr-none' : 'bg-[var(--bg-secondary)] border border-[var(--border)] shadow-md rounded-tl-none'}`;
             
-            if (role === 'system') box.className = 'bg-red-500/10 border border-red-500/20 text-red-500 text-xs italic rounded-xl px-4 py-2 mx-auto';
-
-            let imgHtml = '';
-            if (images && images.length > 0) {
-                imgHtml = `<div class="flex flex-wrap gap-2 mb-3">`;
-                images.forEach(img => imgHtml += `<img src="${img.data}" class="max-w-xs rounded-lg border border-white/10 shadow-lg">`);
-                imgHtml += `</div>`;
+            if (images.length > 0) {
+                const imgGrid = document.createElement('div');
+                imgGrid.className = "flex gap-2 mb-3 flex-wrap";
+                images.forEach(img => imgGrid.innerHTML += `<img src="${img.data}" class="w-32 h-32 object-cover rounded-xl border border-white/10 shadow-sm">`);
+                box.appendChild(imgGrid);
             }
 
+            const textEl = document.createElement('div');
+            textEl.className = "text-sm leading-relaxed";
+            box.appendChild(textEl);
             wrapper.appendChild(box);
             chatBox.appendChild(wrapper);
             chatBox.scrollTop = chatBox.scrollHeight;
 
-            if (animate && role === 'assistant') {
-                isTyping = true;
-                const words = text.split(' ');
-                let current = '';
-                for (const word of words) {
-                    current += word + ' ';
-                    box.innerHTML = imgHtml + parseMarkdown(current) + '<span class="typing-cursor"></span>';
-                    chatBox.scrollTop = chatBox.scrollHeight;
-                    await new Promise(r => setTimeout(r, 40));
-                }
-                box.innerHTML = imgHtml + parseMarkdown(text);
-                isTyping = false;
+            if (animate) {
+                return new Promise(resolve => {
+                    isTyping = true;
+                    const words = text.split(' ');
+                    let current = '';
+                    let i = 0;
+                    const interval = setInterval(() => {
+                        if (i < words.length) {
+                            current += words[i++] + ' ';
+                            textEl.innerHTML = parseMD(current) + '<span class="typing-cursor"></span>';
+                            chatBox.scrollTop = chatBox.scrollHeight;
+                        } else {
+                            clearInterval(interval);
+                            textEl.innerHTML = parseMD(text);
+                            isTyping = false;
+                            resolve();
+                        }
+                    }, 40);
+                });
             } else {
-                box.innerHTML = imgHtml + parseMarkdown(text);
+                textEl.innerHTML = parseMD(text);
             }
         }
 
-        function parseMarkdown(t) {
-            if (!t) return "";
-            // Kod Blokları
-            let res = t.replace(/```(\w+)?([\s\S]*?)```/g, (m, lang, code) => {
-                return `<pre><div class="code-lang">${lang || 'kod'}</div><code>${escapeHtml(code.trim())}</code></pre>`;
-            });
-            // Kalın & İtalik & Satır
-            res = res.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
-                     .replace(/\n/g, '<br>');
-            return `<div class="text-sm md:text-base leading-relaxed">${res}</div>`;
+        function displayImageResult(src, prompt) {
+            const wrapper = document.createElement('div');
+            wrapper.className = "flex justify-start message-bubble";
+            wrapper.innerHTML = `
+                <div class="bg-[var(--bg-secondary)] border border-[var(--border)] p-2 rounded-2xl shadow-xl max-w-lg">
+                    <img src="${src}" class="w-full h-auto rounded-xl mb-2 cursor-pointer hover:opacity-90" onclick="window.open('${src}')">
+                    <div class="p-2 text-[10px] text-gray-500 font-bold uppercase tracking-widest"><i class="fas fa-magic mr-2"></i>${prompt}</div>
+                </div>
+            `;
+            chatBox.appendChild(wrapper);
+            chatBox.scrollTop = chatBox.scrollHeight;
         }
 
-        function escapeHtml(unsafe) {
-            return unsafe.replace(/[&<"']/g, m => ({ '&': '&amp;', '<': '&lt;', '"': '&quot;', "'": '&#039;' }[m]));
+        function displayLoadingMessage(msg) {
+            const id = 'loading-' + Date.now();
+            const wrapper = document.createElement('div');
+            wrapper.id = id;
+            wrapper.className = "flex justify-start message-bubble";
+            wrapper.innerHTML = `
+                <div class="bg-[var(--bg-secondary)] border border-[var(--border)] p-4 rounded-2xl flex items-center gap-4">
+                    <div class="w-5 h-5 border-2 border-sky-500 border-t-transparent rounded-full animate-spin"></div>
+                    <span class="text-xs font-bold text-sky-500">${msg}</span>
+                </div>
+            `;
+            chatBox.appendChild(wrapper);
+            return id;
         }
 
-        function setLoading(isLoading, status = "") {
-            sendBtn.disabled = isLoading;
-            const icon = document.getElementById('send-icon');
-            if (isLoading) {
-                icon.className = "fas fa-spinner fa-spin";
-                const loader = document.createElement('div');
-                loader.id = 'temp-loader';
-                loader.className = 'flex items-center gap-3 p-3 bg-[var(--bg-secondary)] border border-[var(--border)] rounded-xl w-fit mx-auto animate-pulse';
-                loader.innerHTML = `<div class="spinner"></div><span class="text-[10px] font-bold text-sky-500 uppercase tracking-widest">${status}</span>`;
-                chatBox.appendChild(loader);
-                chatBox.scrollTop = chatBox.scrollHeight;
-            } else {
-                icon.className = "fas fa-arrow-up";
-                const l = document.getElementById('temp-loader');
-                if (l) l.remove();
-            }
+        function removeLoadingMessage(id) { document.getElementById(id)?.remove(); }
+
+        function parseMD(t) {
+            return t.replace(/```(\w+)?([\s\S]*?)```/g, '<pre class="my-4"><code class="text-xs">$2</code></pre>').replace(/\n/g, '<br>');
         }
 
-        function showNotification(m) {
-            const n = document.createElement('div');
-            n.className = "fixed top-5 left-1/2 -translate-x-1/2 bg-sky-500 text-white px-6 py-2 rounded-full shadow-2xl z-[200] text-xs font-bold uppercase tracking-widest animate-bounce";
-            n.innerText = m;
-            document.body.appendChild(n);
-            setTimeout(() => n.remove(), 2500);
+        function setLoading(l) {
+            sendBtn.disabled = l;
+            document.getElementById('send-icon').className = l ? "fas fa-spinner fa-spin" : "fas fa-arrow-up";
         }
 
-        // --- EVENTLER ---
+        function save() { localStorage.setItem('windgpt_v3_chats', JSON.stringify(allChats)); }
+
+        window.toggleTheme = () => {
+            document.body.classList.toggle('dark');
+            const isDark = document.body.classList.contains('dark');
+            document.getElementById('theme-icon').className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+            document.getElementById('theme-text').innerText = isDark ? 'Aydınlık Mod' : 'Karanlık Mod';
+        };
+
+        window.generateImagePrompt = () => { userInput.value = '/imagine '; userInput.focus(); };
+
         sendBtn.onclick = handleSend;
-        userInput.onkeydown = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } };
-        userInput.addEventListener('input', function() { this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px'; });
-        document.getElementById('clear-current-chat').onclick = () => { if (confirm("Bu görüşme silinsin mi?")) { allChats[currentChatId].messages = []; saveToStorage(); switchChat(currentChatId); } };
+        userInput.onkeydown = (e) => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } };
+        
+        document.getElementById('file-input').onchange = (e) => {
+            const container = document.getElementById('image-preview-container');
+            container.classList.remove('hidden');
+            Array.from(e.target.files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    selectedFiles.push({ data: ev.target.result, name: file.name });
+                    container.innerHTML += `<div class="relative"><img src="${ev.target.result}" class="w-16 h-16 object-cover rounded-lg border border-sky-500/50"></div>`;
+                };
+                reader.readAsDataURL(file);
+            });
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('system-instruction').value = localStorage.getItem('windgpt_v3_system') || DEFAULT_SYSTEM;
+            if (Object.keys(allChats).length === 0) createNewChat();
+            else switchChat(Object.keys(allChats).sort((a,b)=>b-a)[0]);
+        });
     </script>
 </body>
 </html>
