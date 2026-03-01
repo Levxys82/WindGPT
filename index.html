@@ -148,7 +148,7 @@
                     <span id="theme-text">Aydınlık Mod</span>
                 </button>
                 <div class="pt-2 text-[10px] text-center text-gray-500 font-medium">
-                    (©) 2026 SkyWind(™) Alliance
+                    © 2026 SkyWind™ Alliance
                 </div>
             </div>
         </aside>
@@ -229,7 +229,7 @@
         // --- SİSTEM TALİMATI ---
         function saveSystemInstruction() {
             localStorage.setItem('windgpt_system_prompt', systemInput.value);
-            alert("Talimat güncellendi aga! 🌪️");
+            alert("Sistem talimatı SkyWind veri tabanına işlendi aga! 🌪️");
         }
 
         // --- GEÇMİŞ YÖNETİMİ ---
@@ -238,7 +238,7 @@
             const sortedIds = Object.keys(allChats).sort().reverse();
             
             if (sortedIds.length === 0) {
-                historyList.innerHTML = '<div class="p-3 text-xs text-gray-500 italic">Kayıt yok...</div>';
+                historyList.innerHTML = '<div class="p-3 text-xs text-gray-500 italic">Henüz bir vizyon kaydedilmedi...</div>';
                 return;
             }
 
@@ -246,7 +246,7 @@
                 const chat = allChats[id];
                 const div = document.createElement('div');
                 div.className = `history-item p-3 text-xs rounded-lg mb-1 opacity-70 hover:opacity-100 truncate ${id === currentChatId ? 'active' : 'bg-[var(--bg-primary)]'}`;
-                div.innerHTML = `<i class="fas fa-comment-alt mr-2"></i> ${chat.title || 'Yeni Sohbet'}`;
+                div.innerHTML = `<i class="fas fa-comment-alt mr-2 text-sky-500"></i> ${chat.title || 'Yeni Vizyon'}`;
                 div.onclick = () => loadChat(id);
                 historyList.appendChild(div);
             });
@@ -254,7 +254,7 @@
 
         function createNewChat() {
             currentChatId = Date.now().toString();
-            allChats[currentChatId] = { title: "Yeni Sohbet", messages: [] };
+            allChats[currentChatId] = { title: "Yeni Vizyon", messages: [] };
             saveChats();
             loadChat(currentChatId);
             showWelcome();
@@ -278,11 +278,11 @@
         function showWelcome() {
             chatBox.innerHTML = `
                 <div id="welcome-screen" class="max-w-2xl mx-auto text-center mt-20">
-                    <div class="w-24 h-24 bg-sky-500 rounded-[2rem] flex items-center justify-center text-white mx-auto mb-8 shadow-2xl">
+                    <div class="w-24 h-24 bg-sky-500 rounded-[2rem] flex items-center justify-center text-white mx-auto mb-8 shadow-2xl animate-pulse">
                         <i class="fas fa-wind text-5xl"></i>
                     </div>
-                    <h2 class="text-3xl font-bold mb-4">Hoş geldin Lider.</h2>
-                    <p class="text-gray-500 italic">SkyWind vizyonu seninle. 🛡️</p>
+                    <h2 class="text-3xl font-bold mb-4">Selam Lider.</h2>
+                    <p class="text-gray-500 italic">SkyWind vizyonu seninle. Borcumuzu tahsil etmeye hazırız. 🛡️</p>
                 </div>
             `;
         }
@@ -331,9 +331,8 @@
             const welcome = document.getElementById('welcome-screen');
             if (welcome) welcome.remove();
 
-            // Sohbet başlığını güncelle (ilk mesajsa)
             if (allChats[currentChatId].messages.length === 0) {
-                allChats[currentChatId].title = text.substring(0, 20) || "Görsel Sohbet";
+                allChats[currentChatId].title = text.substring(0, 25) || "Görsel Analiz";
             }
 
             const currentImages = [...selectedFiles];
@@ -347,13 +346,9 @@
             setLoading(true);
 
             try {
-                // Gemini Format Hazırlığı
                 const contents = [];
-                
-                // Sistem talimatını ilk mesaja ekle
                 const finalSystemPrompt = systemInput.value || defaultSystemPrompt;
 
-                // Geçmiş mesajları ekle
                 allChats[currentChatId].messages.forEach(m => {
                     const parts = [{ text: m.text }];
                     if (m.images && m.images.length > 0) {
@@ -378,10 +373,10 @@
                     })
                 });
 
-                if (!response.ok) throw new Error("API Limitine takıldık veya anahtar hatalı.");
+                if (!response.ok) throw new Error("Gök gürültüsü! API limiti aşıldı veya anahtar geçersiz. 🌪️");
                 
                 const data = await response.json();
-                const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || "Rüzgar durdu, yanıt alamadım aga. 🛡️";
+                const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || "Fırtına dindi aga, yanıt rüzgara kapıldı... 🛡️";
 
                 addMessage(aiResponse, 'assistant');
                 allChats[currentChatId].messages.push({ role: 'assistant', text: aiResponse });
@@ -389,7 +384,7 @@
                 loadHistory();
 
             } catch (err) {
-                addMessage(`Hata: ${err.message} 🛡️`, 'system');
+                addMessage(`Sistem Hatası: ${err.message} 🛡️`, 'system');
             } finally {
                 setLoading(false);
             }
@@ -401,11 +396,10 @@
             
             let contentHtml = '';
             
-            // Görseller varsa ekle
             if (images && images.length > 0) {
                 contentHtml += `<div class="flex flex-wrap gap-2 mb-2">`;
                 images.forEach(img => {
-                    contentHtml += `<img src="${img.data}" class="max-w-[200px] rounded-lg border border-sky-500/30">`;
+                    contentHtml += `<img src="${img.data}" class="max-w-[200px] rounded-lg border border-sky-500/30 shadow-md">`;
                 });
                 contentHtml += `</div>`;
             }
@@ -418,6 +412,10 @@
 
             let bgColor = role === 'user' ? 'bg-sky-500 text-white' : 'bg-[var(--bg-secondary)] border border-[var(--border)]';
             let rounded = role === 'user' ? 'rounded-2xl rounded-tr-none' : 'rounded-2xl rounded-tl-none';
+
+            if (role === 'system') {
+                bgColor = 'bg-red-500/10 border border-red-500/20 text-red-500';
+            }
 
             div.innerHTML = `
                 <div class="max-w-[85%] p-4 ${bgColor} ${rounded} shadow-sm">
